@@ -40,6 +40,9 @@
         <div class="mirror-row">
         <span class="sconce left" aria-hidden="true"></span>
         <div class="mirror" id="mirror">
+          <!-- The camera feed plays here, invisible under the drawing. Browsers
+               can stop updating a video that's hidden with display: none. -->
+          <video id="video" class="feed" autoplay playsinline muted></video>
           <canvas
             id="glass"
             role="img"
@@ -100,6 +103,5 @@
       </section>
     </main>
 
-    <video id="video" playsinline muted hidden></video>
   </body>
 </html>

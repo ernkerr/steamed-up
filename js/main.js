@@ -357,6 +357,22 @@ async function startCamera(withMic) {
   return true;
 }
 
+// If the browser pauses the camera feed (it can, to save power), start it
+// again, and check now and then that frames are still coming.
+els.video.addEventListener("pause", () => {
+  if (cameraOn) els.video.play().catch(() => {});
+});
+let lastFrame = { time: -1, at: 0 };
+function keepFeedMoving(now) {
+  const t = els.video.currentTime;
+  if (t !== lastFrame.time) {
+    lastFrame = { time: t, at: now };
+  } else if (now - lastFrame.at > 1500) {
+    lastFrame.at = now;
+    els.video.play().catch(() => {});
+  }
+}
+
 function stopCamera() {
   for (const track of stream?.getVideoTracks() ?? []) track.stop();
   cameraOn = false;
@@ -435,6 +451,7 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
 
+  if (cameraOn) keepFeedMoving(now);
   if (handsOn && cameraOn) {
     try {
       followHands(now);
