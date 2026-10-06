@@ -194,7 +194,7 @@ for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
 
 // ---- Wiping in the air ----
 
-const hands = [null, null]; // each hand's last point while it's pinching
+const hands = [null, null]; // each hand's last point while it's wiping
 const smooth = [null, null];
 const cursorEls = [0, 1].map(() => {
   const el = document.createElement("span");
@@ -222,9 +222,9 @@ function followHands(now) {
     const p = s ? { x: s.x + (raw.x - s.x) * 0.55, y: s.y + (raw.y - s.y) * 0.55 } : raw;
     smooth[i] = p;
     el.hidden = false;
-    el.classList.toggle("pinching", hand.pinching);
+    el.classList.toggle("wiping", hand.wiping);
     el.style.transform = `translate(${p.x}px, ${p.y}px)`;
-    if (hand.pinching) {
+    if (hand.wiping) {
       if (hands[i]) fog.stroke(hands[i].x, hands[i].y, p.x, p.y, 32);
       else fog.wipe(p.x, p.y, 32);
       hands[i] = p;
@@ -309,7 +309,7 @@ function stepHi(now) {
 let started = false;
 const statusFor = () =>
   handsOn
-    ? "Pinch in the air to wipe, or use your finger."
+    ? "Point a finger or pinch in the air to wipe. Open your hand to stop."
     : coarse
       ? "Wipe the mirror with your finger."
       : "Drag across the mirror to wipe it.";
@@ -379,10 +379,9 @@ els.useFinger.addEventListener("click", () => {
 
 // ---- Tools ----
 
-// Like Sound, the camera button says what's on now; pressing it switches.
+// The camera button says what pressing it will do.
 function showCamera() {
-  els.camera.textContent = cameraOn ? "Camera on" : "Camera off";
-  els.camera.setAttribute("aria-pressed", String(cameraOn));
+  els.camera.textContent = cameraOn ? "Turn camera off" : "Turn camera on";
 }
 
 let steamUntil = 0;
@@ -436,7 +435,16 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
 
-  if (handsOn && cameraOn) followHands(now);
+  if (handsOn && cameraOn) {
+    try {
+      followHands(now);
+    } catch {
+      // Hand tracking broke on this device; the finger still works.
+      handsOn = false;
+      cursorEls.forEach((el) => (el.hidden = true));
+      els.status.textContent = "Air drawing stopped working here, so use your finger.";
+    }
+  }
 
   const breath = Math.max(hearBreath(), holding ? 0.9 : 0);
   els.breathe.classList.toggle("hearing", breath > 0.05 && !holding);

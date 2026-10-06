@@ -1,13 +1,13 @@
 # Steamed Up
 
-A bathroom mirror after a hot shower. Breathe on it to fog it up, then wipe it with your finger, or by pinching in the air.
+A bathroom mirror after a hot shower. Breathe on it to fog it up, then wipe it with your finger, or in the air.
 
 Play it at **[ernkerr.github.io/steamed-up](https://ernkerr.github.io/steamed-up/)**.
 
 ## How it plays
 
 - The mirror starts steamed up and slowly fogs back over, the way a real one does.
-- Wipe it with your finger, a mouse, or, with the camera on, by pinching your thumb and finger together in the air.
+- Wipe it with your finger, a mouse, or, with the camera on, in the air: point with one finger, or pinch your thumb and finger together. Open your hand to stop.
 - Blow on your microphone to fog it up again. No mic? Hold the breathe button, or the space bar.
 - Water gathers at the bottom of a wipe and runs down in drips that leave clear trails.
 - With the camera on, the reflection is you. Without it, it's the bathroom behind you, drawn flat.

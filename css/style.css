@@ -194,7 +194,7 @@ button {
   transition: background 120ms;
 }
 
-.cursor.pinching {
+.cursor.wiping {
   background: rgba(255, 255, 255, 0.6);
 }
 
