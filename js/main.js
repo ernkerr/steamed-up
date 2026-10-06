@@ -89,6 +89,7 @@ let scene = null;
 let stream = null;
 let cameraOn = false;
 let handsOn = false;
+let handsLoading = false;
 
 const cover = (sw, sh, dw, dh) => {
   const s = Math.max(dw / sw, dh / sh);
@@ -232,6 +233,22 @@ function followHands(now) {
       hands[i] = null;
     }
   });
+  showHint(seen.some((h) => h?.wiping) ? "wiping" : seen.some(Boolean) ? "seen" : "none", now);
+}
+
+// The status line says what the camera sees, once it's held for a moment.
+const HINTS = {
+  none: "Hold up a hand, then point one finger to wipe.",
+  seen: "I can see your hand. Point one finger, or pinch, to wipe.",
+  wiping: "Wiping. Open your hand to stop.",
+};
+let hint = { shown: null, next: null, since: 0 };
+function showHint(state, now) {
+  if (state !== hint.next) hint = { ...hint, next: state, since: now };
+  else if (state !== hint.shown && now - hint.since > 500) {
+    hint.shown = state;
+    els.status.textContent = HINTS[state];
+  }
 }
 
 // ---- Breathing ----
@@ -309,8 +326,10 @@ function stepHi(now) {
 let started = false;
 const statusFor = () =>
   handsOn
-    ? "Point a finger or pinch in the air to wipe. Open your hand to stop."
-    : coarse
+    ? HINTS.none
+    : cameraOn && handsLoading
+      ? "Getting hand tracking ready..."
+      : coarse
       ? "Wipe the mirror with your finger."
       : "Drag across the mirror to wipe it.";
 
@@ -324,6 +343,9 @@ function begin() {
 }
 
 async function startCamera(withMic) {
+  // Fetch the hand model while the browser asks about the camera.
+  const handsReady = loadHands();
+  handsReady.catch(() => {});
   const video = { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } };
   const mic = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
   let got = null;
@@ -345,13 +367,17 @@ async function startCamera(withMic) {
     hearBreath = listen(stream, audioCtx);
     els.breatheLabel.textContent = "Blow on the mirror";
   }
-  els.status.textContent = "Getting hand tracking ready...";
-  loadHands()
+  handsLoading = true;
+  els.status.textContent = statusFor();
+  handsReady
     .then(() => {
-      handsOn = true;
-      if (started) els.status.textContent = statusFor();
+      handsOn = cameraOn;
     })
     .catch(() => {
+      els.note.textContent = "Hand tracking couldn't load here, so wipe with your finger or mouse.";
+    })
+    .finally(() => {
+      handsLoading = false;
       if (started) els.status.textContent = statusFor();
     });
   return true;
@@ -377,6 +403,7 @@ function stopCamera() {
   for (const track of stream?.getVideoTracks() ?? []) track.stop();
   cameraOn = false;
   handsOn = false;
+  hint = { shown: null, next: null, since: 0 };
   cursorEls.forEach((el) => (el.hidden = true));
   els.status.textContent = statusFor();
 }

@@ -8,10 +8,17 @@ const CDN = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.0";
 const MODEL =
   "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
 
-// Pinch gap, as a share of the palm's length: closer than START begins a
-// stroke, further than STOP ends it, so a wobbly pinch doesn't flicker.
-const START = 0.42;
-const STOP = 0.6;
+// Fingers are judged from MediaPipe's 3D model of the hand (in meters), not
+// the flat picture, so a finger pointed at the screen still counts.
+//
+// A finger is out when its first and last bones are within OUT degrees of
+// each other. On real hands, fingers held out measure about 20 to 40 and
+// folded ones 120 to 170.
+const OUT = 80;
+// Thumb and index tips closer than START (meters) begin a pinch; further
+// than STOP ends it, so a wobbly pinch doesn't flicker.
+const START = 0.035;
+const STOP = 0.05;
 // Frames a pose has to hold before it counts, so a stray frame can't start
 // or end a stroke.
 const HOLD_ON = 2;
@@ -46,23 +53,28 @@ export function loadHands() {
   return loading;
 }
 
-// MediaPipe gives x as a share of the frame's width and y of its height. On
-// a 16:9 camera those aren't the same length, so x is stretched back to
-// square before measuring anything.
-const gap = (a, b, aspect) => Math.hypot((a.x - b.x) * aspect, a.y - b.y);
+const sub = (a, b) => [a.x - b.x, a.y - b.y, a.z - b.z];
+const length = (v) => Math.hypot(v[0], v[1], v[2]);
+const angle = (u, v) => {
+  const cos = (u[0] * v[0] + u[1] * v[1] + u[2] * v[2]) / (length(u) * length(v) || 1);
+  return (Math.acos(Math.max(-1, Math.min(1, cos))) * 180) / Math.PI;
+};
+// How far a finger curls: the angle between its first bone (from the
+// knuckle, mcp) and its last (ending at the tip, mcp + 3).
+const bend = (world, mcp) => angle(sub(world[mcp + 1], world[mcp]), sub(world[mcp + 3], world[mcp + 2]));
 
-// What one hand is doing, from its 21 landmarks: pinching (thumb and index
-// tips together), pointing (index out, middle and ring folded), or neither.
-export function classify(hand, aspect = 1, wasDrawing = false) {
-  const wrist = hand[0];
-  const palm = gap(wrist, hand[9], aspect) || 0.001;
-  // A finger is out when its tip is well past its middle joint.
-  const out = (tip, joint) => gap(wrist, hand[tip], aspect) > gap(wrist, hand[joint], aspect) * 1.15;
-  // In a fist the thumb rests near the folded index fingertip too, so a
-  // pinch also needs the index finger reaching out past the palm.
-  const reach = gap(wrist, hand[8], aspect) / palm;
-  const pinch = reach > 0.95 && gap(hand[4], hand[8], aspect) / palm < (wasDrawing ? STOP : START);
-  const pointing = out(8, 6) && !out(12, 10) && !out(16, 14);
+// What one hand is doing: pinching (thumb and index tips together), pointing
+// (index out, and not the whole hand open), or neither. `hand` is where it
+// is in the picture, `world` its shape in 3D.
+export function classify(hand, world, wasDrawing = false) {
+  const indexBend = bend(world, 5);
+  const others = [9, 13, 17].filter((mcp) => bend(world, mcp) < OUT).length;
+  // A loose point stays a point while it's wiping.
+  const pointing = indexBend < (wasDrawing ? OUT + 20 : OUT) && others <= 1;
+  // In a fist the thumb rests near the index tip too, but the index finger
+  // is curled all the way in.
+  const gap = length(sub(world[4], world[8]));
+  const pinch = indexBend < 150 && gap < (wasDrawing ? STOP : START);
   const tip = hand[8];
   const point = pinch
     ? { x: (tip.x + hand[4].x) / 2, y: (tip.y + hand[4].y) / 2 }
@@ -74,15 +86,15 @@ export function classify(hand, aspect = 1, wasDrawing = false) {
 // start or stop it.
 const state = [0, 1].map(() => ({ drawing: false, count: 0 }));
 
-// The hands in the current video frame: where each is pointing (0 to 1 in
-// the video, before mirroring) and whether it's wiping. Null when there's no
-// new frame to look at.
+// The hands in the current video frame, one slot per hand (left, right):
+// where each is pointing (0 to 1 in the video, before mirroring) and whether
+// it's wiping. Null when there's no new frame to look at.
 export function readHands(video, now) {
   if (!landmarker || video.readyState < 2 || video.currentTime === lastTime) return null;
   lastTime = video.currentTime;
-  let landmarks;
+  let result;
   try {
-    ({ landmarks } = landmarker.detectForVideo(video, now));
+    result = landmarker.detectForVideo(video, now);
     failures = 0;
   } catch (err) {
     // Some graphics drivers fail mid-session. Fall back to the CPU once,
@@ -95,10 +107,22 @@ export function readHands(video, now) {
     if (failures > 30) throw err;
     return null;
   }
-  const aspect = video.videoWidth / video.videoHeight || 1;
-  return landmarks.slice(0, 2).map((hand, i) => {
+  // Keep each hand in the same slot from frame to frame, so a stroke never
+  // jumps from one hand to the other.
+  const slots = [null, null];
+  result.landmarks.slice(0, 2).forEach((hand, i) => {
+    let slot = result.handedness?.[i]?.[0]?.categoryName === "Right" ? 1 : 0;
+    if (slots[slot]) slot = 1 - slot;
+    slots[slot] = { hand, world: result.worldLandmarks[i] };
+  });
+  return slots.map((found, i) => {
     const s = state[i];
-    const seen = classify(hand, aspect, s.drawing);
+    if (!found) {
+      s.drawing = false;
+      s.count = 0;
+      return null;
+    }
+    const seen = classify(found.hand, found.world, s.drawing);
     if (seen.drawing !== s.drawing) {
       s.count += 1;
       if (s.count >= (seen.drawing ? HOLD_ON : HOLD_OFF)) {
