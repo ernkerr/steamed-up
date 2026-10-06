@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Steamed Up</title>
+    <meta
+      name="description"
+      content="A bathroom mirror after a hot shower. Breathe on it to fog it up, then wipe it with your finger, or in the air."
+    />
+    <meta property="og:title" content="Steamed Up" />
+    <meta
+      property="og:description"
+      content="A bathroom mirror after a hot shower. Breathe on it to fog it up, then wipe it with your finger, or in the air."
+    />
+    <meta name="theme-color" content="#d9e7df" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Newsreader:ital,opsz,wght@1,6..72,400&family=Caveat:wght@600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <script type="module" src="js/main.js"></script>
+  </head>
+  <body>
+    <main class="room">
+      <header class="top">
+        <h1 class="wordmark">Steamed Up</h1>
+        <div class="tools" id="tools" hidden>
+          <button type="button" class="pill" id="steam">Steam it up</button>
+          <button type="button" class="pill" id="save">Save a picture</button>
+          <button type="button" class="pill" id="camera" aria-pressed="false">Camera off</button>
+          <button type="button" class="pill" id="sound" aria-pressed="true">Sound on</button>
+        </div>
+      </header>
+
+      <div class="wall">
+        <div class="mirror-row">
+        <span class="sconce left" aria-hidden="true"></span>
+        <div class="mirror" id="mirror">
+          <canvas
+            id="glass"
+            role="img"
+            aria-label="A steamed-up mirror. Drag across it to wipe the fog."
+          ></canvas>
+          <span class="glare" aria-hidden="true"></span>
+          <div class="cursors" id="cursors" aria-hidden="true"></div>
+        </div>
+        <span class="sconce right" aria-hidden="true"></span>
+        </div>
+
+        <!-- A little shelf under the mirror -->
+        <div class="ledge" aria-hidden="true">
+          <svg viewBox="0 0 360 120" width="360" height="120">
+            <rect x="0" y="96" width="360" height="14" rx="4" fill="#c99d6e" />
+            <rect x="0" y="108" width="360" height="5" rx="2" fill="#a97f55" />
+            <!-- A cup with a toothbrush -->
+            <rect x="60" y="34" width="8" height="58" rx="4" fill="#8fbaa8" transform="rotate(-10 64 60)" />
+            <rect x="50" y="18" width="16" height="22" rx="4" fill="#ffffff" transform="rotate(-10 58 29)" />
+            <path d="M44 52 H92 L88 96 H48 Z" fill="#f2e4d8" />
+            <rect x="46" y="80" width="44" height="8" fill="#e7b6a2" />
+            <!-- A bar of soap -->
+            <rect x="140" y="74" width="62" height="22" rx="11" fill="#f6d6c8" />
+            <rect x="150" y="78" width="26" height="5" rx="2.5" fill="#ffffff" opacity="0.7" />
+            <!-- A tiny succulent -->
+            <path d="M262 64 H306 L300 96 H268 Z" fill="#f2e4d8" />
+            <path d="M284 64 C 270 50, 266 36, 272 30 C 280 40, 284 52, 284 64 Z" fill="#3e5a34" />
+            <path d="M284 64 C 296 48, 304 40, 310 40 C 306 52, 296 60, 284 64 Z" fill="#6e9f5f" />
+            <path d="M284 64 C 280 46, 284 30, 292 24 C 294 38, 290 52, 284 64 Z" fill="#a9b86e" />
+          </svg>
+        </div>
+      </div>
+
+      <footer class="bottom">
+        <p class="status" id="status" aria-live="polite"></p>
+        <div class="breath">
+          <button type="button" class="breathe" id="breathe" aria-describedby="breathe-label">
+            <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true">
+              <path d="M6 12c4-3 8 3 12 0s6-3 8-1M6 18c4-3 8 3 12 0s6-3 8-1M8 24c3-2 6 2 9 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <span class="sr-only">Breathe on the mirror</span>
+          </button>
+          <p class="breathe-label" id="breathe-label">Hold to breathe</p>
+        </div>
+        <p class="note" id="note"></p>
+      </footer>
+
+      <section class="intro" id="intro" aria-labelledby="intro-title">
+        <div class="card">
+          <h2 id="intro-title">Steamed Up</h2>
+          <p>A mirror after a hot shower. Breathe on it to fog it up, then wipe it with your finger, or by pinching in the air.</p>
+          <div class="choices">
+            <button type="button" class="button primary" id="use-camera">Use my camera and mic</button>
+            <button type="button" class="button" id="use-finger">Just my finger</button>
+          </div>
+          <p class="privacy">Your camera and mic stay on this device. Nothing is recorded or sent anywhere.</p>
+        </div>
+      </section>
+    </main>
+
+    <video id="video" playsinline muted hidden></video>
+  </body>
+</html>

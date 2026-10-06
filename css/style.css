@@ -1,0 +1,480 @@
+:root {
+  --tile: #d9e7df;
+  --tile-hi: #e7f0eb;
+  --grout: #f4f8f5;
+  --ink: #284339;
+  --muted: #5d776c;
+  --brass: #c9a25e;
+  --brass-hi: #ecd29a;
+  --brass-lo: #9f7a33;
+  --glow: rgba(255, 236, 170, 0.6);
+
+  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+/* A bathroom wall of pale sage tiles, lit from above. */
+body {
+  overflow: hidden;
+  font-family: var(--sans);
+  color: var(--ink);
+  background-color: var(--grout);
+  background-image:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255, 244, 214, 0.55), transparent 70%),
+    linear-gradient(var(--grout) 3px, transparent 3px),
+    linear-gradient(90deg, var(--grout) 3px, transparent 3px),
+    linear-gradient(135deg, var(--tile-hi), var(--tile) 60%);
+  background-size:
+    100% 100%,
+    64px 64px,
+    64px 64px,
+    64px 64px;
+  -webkit-font-smoothing: antialiased;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.room {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* ---- Top ---- */
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 16px 24px 8px;
+}
+
+.wordmark {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 30px;
+  letter-spacing: -0.01em;
+}
+
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  padding: 8px 14px;
+  border: 1px solid rgba(40, 67, 57, 0.14);
+  border-radius: 999px;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  transition:
+    background 150ms,
+    border-color 150ms;
+}
+
+.pill:hover {
+  border-color: rgba(40, 67, 57, 0.3);
+  background: #ffffff;
+}
+
+/* ---- The mirror ---- */
+
+.wall {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px 0;
+}
+
+.mirror-row {
+  position: relative;
+}
+
+.mirror {
+  --mw: min(1100px, calc(100vw - 220px));
+  --mh: max(260px, calc(100dvh - 340px));
+  position: relative;
+  width: var(--mw);
+  height: var(--mh);
+  overflow: hidden;
+  border-radius: 40px;
+  background: #cfdbd7;
+  box-shadow:
+    0 0 0 5px var(--brass),
+    0 0 0 6px var(--brass-lo),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6),
+    0 34px 56px -26px rgba(30, 55, 45, 0.55);
+  touch-action: none;
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><circle cx='20' cy='20' r='17' fill='rgba(255,255,255,0.18)' stroke='white' stroke-width='2'/><circle cx='20' cy='20' r='17' fill='none' stroke='rgba(40,67,57,0.35)' stroke-width='1' /></svg>")
+      20 20,
+    crosshair;
+}
+
+#glass {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Light catching the glass. */
+.glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 28%,
+    rgba(255, 255, 255, 0.13) 34%,
+    transparent 42%,
+    transparent 58%,
+    rgba(255, 255, 255, 0.08) 62%,
+    transparent 68%
+  );
+}
+
+.cursors {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* A fingertip, when you draw in the air. */
+.cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(40, 67, 57, 0.25);
+  transition: background 120ms;
+}
+
+.cursor.pinching {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* Wall lights on each side. */
+.sconce {
+  position: absolute;
+  top: 14%;
+  width: 44px;
+  height: 110px;
+}
+
+.sconce::before {
+  content: "";
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  width: 14px;
+  height: 64px;
+  margin-left: -7px;
+  border-radius: 7px;
+  background: linear-gradient(90deg, var(--brass-lo), var(--brass-hi) 45%, var(--brass));
+}
+
+.sconce::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, #ffffff, #fff4cf 45%, #f6dfa0);
+  box-shadow: 0 0 60px 26px var(--glow);
+}
+
+.sconce.left {
+  left: -84px;
+}
+
+.sconce.right {
+  right: -84px;
+}
+
+.ledge {
+  margin-top: 6px;
+  line-height: 0;
+}
+
+/* ---- Bottom ---- */
+
+.bottom {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 10px 16px 20px;
+}
+
+.status {
+  min-height: 1.4em;
+  margin: 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.breath {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.breathe {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgba(40, 67, 57, 0.18);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--ink);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    transform 160ms,
+    box-shadow 160ms,
+    background 160ms;
+}
+
+/* Fogging: held down, or the mic hears you blowing. */
+.breathe.on,
+.breathe.hearing {
+  background: #ffffff;
+  transform: scale(1.08);
+  box-shadow:
+    0 0 0 8px rgba(255, 255, 255, 0.5),
+    0 0 34px rgba(255, 255, 255, 0.95);
+}
+
+.breathe-label {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.note {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.note:empty {
+  display: none;
+}
+
+/* ---- The start card ---- */
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: end center;
+  padding: 24px 16px 15vh;
+  pointer-events: none;
+}
+
+.card {
+  width: min(460px, 100%);
+  padding: 28px 28px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 24px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow: 0 30px 60px -24px rgba(30, 55, 45, 0.5);
+  pointer-events: auto;
+  animation: rise 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition:
+    opacity 360ms,
+    transform 360ms;
+}
+
+.intro.leaving .card {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.card h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 46px;
+  line-height: 1;
+}
+
+.card > p {
+  margin: 14px 0 0;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.button {
+  padding: 11px 18px;
+  border: 1px solid rgba(40, 67, 57, 0.25);
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 500;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 150ms,
+    border-color 150ms;
+}
+
+.button:hover {
+  border-color: var(--ink);
+}
+
+.button.primary {
+  border-color: var(--ink);
+  color: #ffffff;
+  background: var(--ink);
+}
+
+.button.primary:hover {
+  background: #1d3229;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.card .privacy {
+  margin-top: 16px;
+  font-size: 13px;
+}
+
+/* ---- Small screens: the mirror takes the wall, arched at the top ---- */
+
+@media (max-width: 760px) {
+  .top {
+    justify-content: center;
+    padding: 12px 12px 4px;
+  }
+
+  .wordmark {
+    width: 100%;
+    font-size: 26px;
+    text-align: center;
+  }
+
+  .tools {
+    justify-content: center;
+  }
+
+  .tools {
+    gap: 6px;
+  }
+
+  .pill {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .mirror {
+    --mw: calc(100vw - 32px);
+    --mh: max(260px, calc(100dvh - 250px));
+    border-radius: 48% 48% 28px 28px / 22% 22% 28px 28px;
+  }
+
+  .sconce,
+  .ledge {
+    display: none;
+  }
+
+  .intro {
+    padding-bottom: 10vh;
+  }
+
+  .card h2 {
+    font-size: 38px;
+  }
+}
+
+@media (max-height: 640px) {
+  .ledge {
+    display: none;
+  }
+
+  .mirror {
+    --mh: max(240px, calc(100dvh - 210px));
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .breathe {
+    animation: none;
+    transition: none;
+  }
+}
